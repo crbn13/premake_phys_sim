@@ -1,7 +1,7 @@
 #pragma once
 
-namespace Core {
+namespace crbn {
 
-	void PrintHelloWorld();
+void start_sim();
 
 }

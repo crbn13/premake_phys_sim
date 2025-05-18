@@ -2,12 +2,13 @@
 
 #include <iostream>
 
-namespace Core {
+namespace crbn {
 
-	void PrintHelloWorld()
-	{
-		std::cout << "Hello World!\n";
-		std::cin.get();
-	}
-
+void PrintHelloWorld() {
+  std::cout << "Hello World!\n";
+  std::cin.get();
 }
+
+void start_sim() { std::cout << "simulatoring time\n"; }
+
+} // namespace crbn
