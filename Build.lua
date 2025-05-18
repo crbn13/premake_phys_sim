@@ -2,16 +2,16 @@
 workspace "phys_sim"
    architecture "x64"
    configurations { "Debug", "Release", "Dist" }
-   startproject "App"
+   startproject "app"
 
    -- Workspace-wide build options for MSVC
    filter "system:windows"
       buildoptions { "/EHsc", "/Zc:preprocessor", "/Zc:__cplusplus" }
 
-OutputDir = "{cfg.buildcfg}"
+OutputDir = "%{cfg.buildcfg}"
 
-group "Core"
-	include "Core/Build-Core.lua"
-group "App"
+group "core"
+	include "core/Build-Core.lua"
+group "app"
 
-include "App/Build-App.lua"
+include "app/Build-App.lua"
