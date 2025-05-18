@@ -1,7 +1,7 @@
 -- premake5.lua
 workspace "phys_sim"
    architecture "x64"
-   configurations { "Debug", "Release", "Dist" }
+   configurations { "debug", "delease", "dist" }
    startproject "app"
 
    -- Workspace-wide build options for MSVC

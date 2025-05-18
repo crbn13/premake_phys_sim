@@ -27,18 +27,18 @@ project "app"
        systemversion "latest"
        defines { "WINDOWS" }
 
-   filter "configurations:Debug"
+   filter "configurations:debug"
        defines { "DEBUG" }
        runtime "Debug"
        symbols "On"
 
-   filter "configurations:Release"
+   filter "configurations:release"
        defines { "RELEASE" }
        runtime "Release"
        optimize "On"
        symbols "On"
 
-   filter "configurations:Dist"
+   filter "configurations:dist"
        defines { "DIST" }
        runtime "Release"
        optimize "On"
