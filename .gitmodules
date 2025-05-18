@@ -1,0 +1,3 @@
+[submodule "premake-ecc"]
+	path = premake-ecc
+	url = git@github.com:MattBystrin/premake-ecc.git

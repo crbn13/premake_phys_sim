@@ -1,6 +1,7 @@
 # Directories
 .vs/
 binaries/
+.cache/
 
 # Files
 *.vcxproj
@@ -9,6 +10,6 @@ binaries/
 *.sln
 *.log
 Makefile
-
+compile_commands.json
 # Exclude
 !Vendor/Binaries

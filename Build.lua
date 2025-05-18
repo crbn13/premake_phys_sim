@@ -3,6 +3,7 @@ workspace "phys_sim"
    architecture "x64"
    configurations { "debug", "release", "dist" }
    startproject "app"
+   require "premake-ecc/ecc"
 
    -- Workspace-wide build options for MSVC
    filter "system:windows"
