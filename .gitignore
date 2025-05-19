@@ -11,5 +11,6 @@ binaries/
 *.log
 Makefile
 compile_commands.json
+*.make
 # Exclude
 !Vendor/Binaries

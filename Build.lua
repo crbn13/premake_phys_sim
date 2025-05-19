@@ -11,8 +11,9 @@ workspace "phys_sim"
 
 OutputDir = "%{cfg.buildcfg}"
 
-include "lib/Build-imgui.lua"
-include "lib/Build-glfw.lua"
+group "deps"
+  include "lib/Build-imgui.lua"
+  include "lib/Build-glfw.lua"
 
 
 group "core"

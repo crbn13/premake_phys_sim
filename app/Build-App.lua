@@ -4,7 +4,6 @@ project "app"
    cppdialect "C++20"
    targetdir "binaries/%{cfg.buildcfg}"
    staticruntime "off"
-   toolset "clang"
 
    files { "source/**.h", "source/**.*pp" }
 
@@ -21,6 +20,7 @@ project "app"
 
    links
    {
+      "GL",
       "ImGui",
       "GLFW",
       "core"

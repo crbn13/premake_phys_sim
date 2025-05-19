@@ -6,6 +6,11 @@ project "ImGui"
   targetdir ("../binaries/" .. OutputDir .. "/%{prj.name}")
   objdir ("../binaries/Intermediates/" .. OutputDir .. "/%{prj.name}")
 
+  includedirs
+  {
+    "imgui"
+  }
+
 	files
 	{
 		"imgui/imconfig.h",
@@ -18,7 +23,12 @@ project "ImGui"
 		"imgui/imstb_rectpack.h",
 		"imgui/imstb_textedit.h",
 		"imgui/imstb_truetype.h",
-		"imgui/imgui_demo.cpp"
+		"imgui/imgui_demo.cpp",
+		"imgui/backends/imgui_impl_opengl3.cpp",
+		"imgui/backends/imgui_impl_opengl3.h",
+		"imgui/backends/imgui_impl_glfw.h",
+		"imgui/backends/imgui_impl_glfw.cpp",
+
 	}
 
 	filter "system:windows"
@@ -29,6 +39,7 @@ project "ImGui"
 		pic "On"
 		systemversion "latest"
 		cppdialect "C++17"
+    links "GL"
 
 	filter "configurations:debug"
 		runtime "Debug"
