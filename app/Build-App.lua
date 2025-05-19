@@ -11,6 +11,9 @@ project "app"
    includedirs
    {
       "source",
+      "../lib/imgui",
+      "../lib/imgui/backends",
+      "../lib/glfw/include",
 
 	  -- Include Core
 	  "../core/source"
@@ -18,6 +21,8 @@ project "app"
 
    links
    {
+      "ImGui",
+      "GLFW",
       "core"
    }
 
