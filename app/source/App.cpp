@@ -121,6 +121,12 @@ int main(int, char**)
 
 
     crbn::Uniform_Sphere_Sim_2d sim;
+    sim.setParticleCount(1);
+    crbn::particle_2d tmpparticle;
+    tmpparticle.ypos=400;
+
+    sim.setParticle(tmpparticle);
+
     sim.runAsync(.0005F);
 
     // Main loop
@@ -152,10 +158,12 @@ int main(int, char**)
 
         crbn::pos tempPos;
         crbn::coord_type* coordbuf = sim.getCoordBuf();
+
+
         tempPos.x=coordbuf[0];
         tempPos.y=coordbuf[1];
 
-        ImGui::GetBackgroundDrawList()->AddCircleFilled({float(100+tempPos.x),100}, 50, ImGui::GetColorU32({100,100,100,100}));
+        ImGui::GetBackgroundDrawList()->AddCircleFilled({float(100+tempPos.x),float(tempPos.y)}, 50, ImGui::GetColorU32({100,100,100,100}));
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
         if (show_demo_window)
