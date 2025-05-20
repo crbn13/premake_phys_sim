@@ -1,6 +1,6 @@
 [submodule "premake-ecc"]
 	path = premake-ecc
-	url = git@github.com:MattBystrin/premake-ecc.git
+	url = https://github.com/MattBystrin/premake-ecc.git
 [submodule "lib/imgui"]
 	path = lib/imgui
 	url = https://github.com/ocornut/imgui.git
