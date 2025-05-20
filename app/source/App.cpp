@@ -7,6 +7,7 @@
 // - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
 // - Introduction, links and more at the top of imgui.cpp
 
+#include "core/Core.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -118,6 +119,10 @@ int main(int, char**)
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+
+    crbn::Uniform_Sphere_Sim_2d sim;
+    sim.runAsync(.0005F);
+
     // Main loop
 #ifdef __EMSCRIPTEN__
     // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
@@ -145,8 +150,12 @@ int main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        crbn::pos tempPos;
+        crbn::coord_type* coordbuf = sim.getCoordBuf();
+        tempPos.x=coordbuf[0];
+        tempPos.y=coordbuf[1];
 
-        ImGui::GetBackgroundDrawList()->AddCircleFilled({100,100}, 50, ImGui::GetColorU32({100,100,100,100}));
+        ImGui::GetBackgroundDrawList()->AddCircleFilled({float(100+tempPos.x),100}, 50, ImGui::GetColorU32({100,100,100,100}));
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
         if (show_demo_window)
@@ -184,6 +193,8 @@ int main(int, char**)
                 show_another_window = false;
             ImGui::End();
         }
+
+        sim.runAsync(io.DeltaTime);
 
         // Rendering
         ImGui::Render();
