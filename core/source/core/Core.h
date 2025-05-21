@@ -15,10 +15,11 @@ struct pos
 
 struct particle_2d
 {
-    coord_type mass;
-    coord_type vel_y;
-    coord_type vel_x;
-    coord_type xpos, ypos;
+    coord_type mass = 0;
+    coord_type vel_y = 0;
+    coord_type vel_x = 0;
+    coord_type xpos = 0;
+    coord_type ypos = 0;
     
 };
 
@@ -39,7 +40,7 @@ public: // Public callable functions :
     // Returns the size of the particle array which has DOUBLE the NUMBER OF ELEMENTS (NOT BYTES) particle count 
     size_t setParticleCount(size_t particles);
 
-    void setParticle(particle_2d& part);
+    void setParticle(particle_2d& part, size_t element);
 
     Uniform_Sphere_Sim_2d();
     ~Uniform_Sphere_Sim_2d();
