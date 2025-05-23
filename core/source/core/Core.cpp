@@ -25,6 +25,8 @@ coord_type* Uniform_Sphere_Sim_2d::getCoordBuf()
 }
 
 void Uniform_Sphere_Sim_2d::setParticle(particle_2d& part, size_t element) { _particles[element] = part; }
+    
+void setTimeModifier(coord_type _time_modifier) {  }
 
 void Uniform_Sphere_Sim_2d::runAsync(float elapsedTime)
 {

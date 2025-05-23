@@ -41,6 +41,7 @@ public: // Public callable functions :
     size_t setParticleCount(size_t particles);
 
     void setParticle(particle_2d& part, size_t element);
+    void setTimeModifier(coord_type _time_modifier);
 
     Uniform_Sphere_Sim_2d();
     ~Uniform_Sphere_Sim_2d();
@@ -51,6 +52,7 @@ private: // Member Variables
     bool _coords_ready;
     size_t _particle_count;
     particle_2d* _particles;
+    coord_type _time_modifier;
 
     // temporary : 
     particle_2d particle;
