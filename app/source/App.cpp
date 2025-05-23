@@ -140,10 +140,10 @@ int main(int, char**)
     sim.setParticleCount(5);
 
     // Set the dimensions of the particle box
-    sim._rectangle_dims[0]=10;
-    sim._rectangle_dims[1]=10;
-    sim._rectangle_dims[2]=1000;
-    sim._rectangle_dims[3]=1000;
+    sim._rectangle_dims[0] = 10;
+    sim._rectangle_dims[1] = 10;
+    sim._rectangle_dims[2] = 1000;
+    sim._rectangle_dims[3] = 1000;
 
     crbn::particle_2d tmpparticle;
     tmpparticle.ypos = 800;
@@ -191,14 +191,14 @@ int main(int, char**)
         tempPos.x = coordbuf[0];
         tempPos.y = coordbuf[1];
 
-        ImGui::GetBackgroundDrawList()->AddCircleFilled(
+        auto* imgui_drawlist = ImGui::GetBackgroundDrawList();
+
+        imgui_drawlist->AddCircleFilled(
             { float(100 + tempPos.x), float(tempPos.y) },
             50,
             ImGui::GetColorU32({ 100, 100, 100, 100 }));
-        ImGui::GetBackgroundDrawList()->AddCircleFilled(
-            { 200, 200},
-            10,
-            ImGui::GetColorU32({ 100, 255, 100, 100 }));
+        imgui_drawlist->AddCircleFilled(
+            { 200, 200 }, 10, ImGui::GetColorU32({ 100, 255, 100, 100 }));
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You
         // can browse its code to learn more about Dear ImGui!).
@@ -233,8 +233,10 @@ int main(int, char**)
 
             ImGui::SliderFloat("TimeModifier", &tmpdbl, 0, 200);
             sim.setTimeModifier(tmpdbl);
-            ImGui::End();
 
+            ImGui::SliderInt4("BOXBOX", (int*)&sim._rectangle_dims, 0, 1000);
+
+            ImGui::End();
         }
 
         sim.runAsync(io.DeltaTime);

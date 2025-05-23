@@ -55,7 +55,7 @@ public: // Public callable functions :
     /// Sets the decimal percentage of total energy after a bounce with a wall?
     coord_type _bounce_losses;
     /// Sets the (x,y)(x,y) of the top left and bottom right dimensions of the rectangular container
-    std::array<coord_type, 4> _rectangle_dims {};
+    std::array<int, 4> _rectangle_dims {};
     enum _rectangle_array 
     {
         bottom_left_x = 0,
