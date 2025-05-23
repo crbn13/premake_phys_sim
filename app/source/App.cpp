@@ -135,7 +135,15 @@ int main(int, char**)
 
     crbn::Uniform_Sphere_Sim_2d sim;
 
+    sim.setTimeModifier(20);
+
     sim.setParticleCount(5);
+
+    // Set the dimensions of the particle box
+    sim._rectangle_dims[0]=10;
+    sim._rectangle_dims[1]=10;
+    sim._rectangle_dims[2]=1000;
+    sim._rectangle_dims[3]=1000;
 
     crbn::particle_2d tmpparticle;
     tmpparticle.ypos = 800;
@@ -216,34 +224,17 @@ int main(int, char**)
                                                          // to 1.0f
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a
                                                                     // color
-            crbn::particle_2d tptcle;
-            if (ImGui::Button("ClickMe to make move circle hopefully"))
-                sim.setParticle(tptcle, 0);
-
-            if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return
-                                         // true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
             ImGui::Text(
                 "Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / io.Framerate,
                 io.Framerate);
-            ImGui::End();
-        }
 
-        // 3. Show another simple window.
-        if (show_another_window)
-        {
-            ImGui::Begin("Another Window", &show_another_window); // Pass a pointer to our bool
-                                                                  // variable (the window will have
-                                                                  // a closing button that will
-                                                                  // clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
+            float tmpdbl;
+
+            ImGui::SliderFloat("TimeModifier", &tmpdbl, 0, 200);
+            sim.setTimeModifier(tmpdbl);
             ImGui::End();
+
         }
 
         sim.runAsync(io.DeltaTime);

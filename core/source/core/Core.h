@@ -1,6 +1,9 @@
 #pragma once
 
+#include <array>
+#include <cmath>
 #include <cstddef>
+#include <thread>
 namespace crbn
 {
 
@@ -20,6 +23,7 @@ struct particle_2d
     coord_type vel_x = 0;
     coord_type xpos = 0;
     coord_type ypos = 0;
+    coord_type radius=1;
     
 };
 
@@ -41,10 +45,24 @@ public: // Public callable functions :
     size_t setParticleCount(size_t particles);
 
     void setParticle(particle_2d& part, size_t element);
-    void setTimeModifier(coord_type _time_modifier);
+    void setTimeModifier(coord_type time_modifier);
 
     Uniform_Sphere_Sim_2d();
     ~Uniform_Sphere_Sim_2d();
+
+    /// Sets a modifier that speeds up or slows down simulation speed
+    coord_type _time_modifier;
+    /// Sets the decimal percentage of total energy after a bounce with a wall?
+    coord_type _bounce_losses;
+    /// Sets the (x,y)(x,y) of the top left and bottom right dimensions of the rectangular container
+    std::array<coord_type, 4> _rectangle_dims {};
+    enum _rectangle_array 
+    {
+        bottom_left_x = 0,
+        bottom_left_y,
+        top_right_x,
+        top_right_y,
+    };
 
 private: // Member Variables
     coord_type* _coordinate_array;
@@ -52,7 +70,6 @@ private: // Member Variables
     bool _coords_ready;
     size_t _particle_count;
     particle_2d* _particles;
-    coord_type _time_modifier;
 
     // temporary : 
     particle_2d particle;

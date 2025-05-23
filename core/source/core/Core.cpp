@@ -26,29 +26,46 @@ coord_type* Uniform_Sphere_Sim_2d::getCoordBuf()
 
 void Uniform_Sphere_Sim_2d::setParticle(particle_2d& part, size_t element) { _particles[element] = part; }
     
-void setTimeModifier(coord_type _time_modifier) {  }
+void Uniform_Sphere_Sim_2d::setTimeModifier(coord_type time_modifier) { _time_modifier = time_modifier ; }
 
 void Uniform_Sphere_Sim_2d::runAsync(float elapsedTime)
 {
     _coords_ready = false;
+    coord_type deltaT = elapsedTime * _time_modifier;
 
     for (int i = 0; i < _coordinate_array_size; i += 2)
     {
+
+        // Finding Speeds
         int x = i / 2;
         coord_type uvx = _particles[x].vel_x;
         _particles[x].vel_x = uvx;
-        _particles[x].xpos += elapsedTime * 0.5 * (uvx + _particles[x].vel_x);
         coord_type uvy = _particles[x].vel_y;
-        _particles[x].vel_y = uvy + acceleration * elapsedTime;
-        _particles[x].ypos += elapsedTime * 0.5 * (uvy + _particles[x].vel_y);
+        _particles[x].vel_y = uvy + acceleration * deltaT;
 
+        // Position increase
+        _particles[x].xpos += deltaT * 0.5 * (uvx + _particles[x].vel_x);
+        _particles[x].ypos += deltaT * 0.5 * (uvy + _particles[x].vel_y);
+
+        // Update array
         _coordinate_array[i] = _particles[x].xpos;
         _coordinate_array[i + 1] = _particles[x].ypos;
 
-        if (_particles[x].xpos < 0)
+        // Find radius
+        coord_type radius = _particles->radius;
+
+        // Border checks 
+        // X
+        if (_particles[x].xpos - radius < _rectangle_dims[bottom_left_x]) // check collision left
             _particles[x].vel_x = std::fabs(_particles[x].vel_x);
-        if (_particles[x].ypos < 0)
+        if (_particles[x].xpos + radius > _rectangle_dims[top_right_x]) // check collision right
+            _particles[x].vel_x = std::fabs(_particles[x].vel_x) * -1;
+        // Y 
+        if (_particles[x].ypos - radius < _rectangle_dims[bottom_left_y]) // check collision below
             _particles[x].vel_y = std::fabs(_particles[x].vel_y);
+        if (_particles[x].ypos + radius > _rectangle_dims[top_right_y]) // check collision above
+            _particles[x].vel_y = std::fabs(_particles[x].vel_y) * -1;
+
     }
 
     _coords_ready = true;
@@ -81,7 +98,12 @@ Uniform_Sphere_Sim_2d::Uniform_Sphere_Sim_2d()
     , tempmod(0)
     , _coordinate_array(nullptr)
     , _particles(nullptr)
+
 {
+    _rectangle_dims[0]=10;
+    _rectangle_dims[1]=10;
+    _rectangle_dims[2]=100;
+    _rectangle_dims[3]=100;
 }
 
 Uniform_Sphere_Sim_2d::~Uniform_Sphere_Sim_2d()
