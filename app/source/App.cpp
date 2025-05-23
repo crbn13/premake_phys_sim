@@ -178,6 +178,7 @@ int main(int, char**)
 
         crbn::pos tempPos;
         crbn::coord_type* coordbuf = sim.getCoordBuf();
+        std::cout << "coords" << coordbuf[0] << " " << coordbuf[1] << std::endl;
 
         tempPos.x = coordbuf[0];
         tempPos.y = coordbuf[1];
@@ -245,7 +246,7 @@ int main(int, char**)
             ImGui::End();
         }
 
-        //sim.runAsync(io.DeltaTime);
+        sim.runAsync(io.DeltaTime);
         std::cout << io.DeltaTime << std::endl;
 
         // Rendering
