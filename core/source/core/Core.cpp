@@ -139,78 +139,61 @@ size_t Uniform_Sphere_Sim_2d::setParticleCount(const size_t& particles)
 
 void Uniform_Sphere_Sim_2d::dirtyCollisionDetector()
 {
-    // divides particles up horizontally
-    std::vector<std::vector<particle_2d>> yChunks;
-    yChunks.resize(_chunks.second);
-    yChunks.assign(_chunks.second, {std::vector<particle_2d>()} );
-
-    //divides particles up into 3d chunks
-    std::vector<std::vector<particle_2d>> xyChunks;
+    // divides particles up into 3d chunks
+    std::vector<std::vector<std::vector<particle_2d>>> xyChunks;
+    xyChunks.resize(_chunks.first);
 
     int chunksCount = _chunks.first * _chunks.second;
 
-
     for (auto& x : xyChunks)
-        x.reserve((_particle_count / chunksCount) * 2);
-    for (auto& x : yChunks)
-        x.reserve((_particle_count / chunksCount) * 2);
+    {
+        x.resize(_chunks.second);
+        for (auto& y : x)
+        {
+            y.reserve(((float)_particle_count / chunksCount) * 1.5);
+        }
+    }
 
-    for ( int i = 0 ; i < _particle_count ; i++)
+    for (int i = 0; i < _particle_count; i++)
     {
         std::cout << "num = " << _particles[i].ypos;
 
-
-        coord_type leny = ((_rectangle_dims[top_right_y]-_rectangle_dims[bottom_left_y])/(float)_chunks.second);
-        coord_type lenx = ((_rectangle_dims[top_right_x]-_rectangle_dims[bottom_left_x])/(float)_chunks.first);
-        //std::cout << "len = " << len << std::endl;;
-        // sort out particles into their y chunks
-        for (int y = 0 ; y < _chunks.second; y++)
-        {// i could do binary search instead 
-            //std::cout << _rectangle_dims[bottom_left_y] + (y+1) * len << "\n";
-            if (_particles[i].ypos < (_rectangle_dims[bottom_left_y] + (y+1) * leny) )
+        coord_type leny
+            = ((_rectangle_dims[top_right_y] - _rectangle_dims[bottom_left_y])
+               / (float)_chunks.second);
+        coord_type lenx
+            = ((_rectangle_dims[top_right_x] - _rectangle_dims[bottom_left_x])
+               / (float)_chunks.first);
+        // std::cout << "len = " << len << std::endl;;
+        //  sort out particles into their y chunks
+        for (int y = 0; y < _chunks.second; y++)
+        { // i could do binary search instead
+            // std::cout << _rectangle_dims[bottom_left_y] + (y+1) * len << "\n";
+            if (_particles[i].ypos < (_rectangle_dims[bottom_left_y] + (y + 1) * leny))
             {
-                yChunks[y].emplace_back(_particles[i]);
-                y = _chunks.second;
+                for (int x = 0; x < _chunks.first; x++)
+                    if (_particles[i].xpos < (_rectangle_dims[bottom_left_x] + (x + 1) * lenx))
+                    {
+                        xyChunks[x][y].emplace_back(_particles[i]);
+                        x = _chunks.first;
+                        y = _chunks.second;
+                    }
             }
-            continue;
-        }
-    }
-    // sort x chunks into x chunks
-
-    for ( int i = 0 ; i < _particle_count ; i++)
-    {
-        std::cout << "num = " << _particles[i].xpos;
-
-
-        coord_type len = ((_rectangle_dims[top_right_x]-_rectangle_dims[bottom_left_x])/(float)_chunks.first);
-        std::cout << "len = " << len << std::endl;;
-        // sort out particles into their y chunks
-        for (int x = 0 ; x < _chunks.first; x++)
-        {// i could do binary search instead 
-
-            std::cout << _rectangle_dims[bottom_left_x] + (x+1) * len << "\n";
-            if (_particles[i].xpos < (_rectangle_dims[bottom_left_x] + (x+1) * len) )
-            {
-                xChunks[x].emplace_back(_particles[i]);
-                x = _chunks.first;
-            }
-            continue;
         }
     }
 
-    int iter = 0;
-    for(int y = 0 ; y < _chunks.second ; y++)
-    for(int x = 0 ; x < _chunks.first ; x++)
-    {
-        std::cout << "\nCHUNK (" << x << ","<< y<<")  DATA : \n"; 
-        for 
-        
-            std::cout << x[i].ypos << "\t";
-        iter++;
-    }
+    for (int x = 0; x < _chunks.first; x++)
+        for (int y = 0; y < _chunks.second; y++)
+        {
+            std::cout << "\nCHUNK (" << x << "," << y << ")  DATA : \n";
+
+            for (auto& z : xyChunks[x][y])
+                std::cout << "(" << z.xpos << "," << z.ypos << ")\n";
+        }
     std::cout << std::endl;
-
 }
+
+void Uniform_Sphere_Sim_2d::dirtyColliderProcess(const std::vector<particle_2d*>& particles) { }
 
 Uniform_Sphere_Sim_2d::Uniform_Sphere_Sim_2d()
     : _coords_ready(false)
