@@ -24,7 +24,7 @@ struct particle_2d
     coord_type xpos = 0;
     coord_type ypos = 0;
     coord_type radius = 1;
-    bool out_of_bounds = false;
+    int8_t out_of_bounds = 0;
 };
 
 class Uniform_Sphere_Sim_2d

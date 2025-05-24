@@ -140,7 +140,7 @@ int main(int, char**)
 
     sim.setTimeModifier(20);
 
-    int particles = 20;
+    int particles = 200;
     crbn::coord_type radius = 20;
     sim.setParticleCount(particles);
 

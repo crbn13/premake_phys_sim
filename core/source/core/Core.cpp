@@ -47,18 +47,18 @@ void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
 
         // Checks for out of bounds particles, and gives them a helping hand to get back within
         // bounds
-        if (_particles[x].out_of_bounds)
+        if (_particles[x].out_of_bounds > 100)
         {
             if (_particles[x].xpos - radius < _rectangle_dims[bottom_left_x])
-                _particles[x].vel_x = std::fabs(_particles[x].vel_x) + 100;
+                _particles[x].vel_x = std::fabs(_particles[x].vel_x) + 1000;
             else if (_particles[x].xpos + radius > _rectangle_dims[top_right_x])
-                _particles[x].vel_x = std::fabs(_particles[x].vel_x) * -1 - 100;
+                _particles[x].vel_x = std::fabs(_particles[x].vel_x) * -1 - 1000;
             if (_particles[x].ypos - radius < _rectangle_dims[bottom_left_y])
-                _particles[x].vel_y = std::fabs(_particles[x].vel_y) + 100;
+                _particles[x].vel_y = std::fabs(_particles[x].vel_y) + 1000;
             else if (_particles[x].ypos + radius > _rectangle_dims[top_right_y])
-                _particles[x].vel_y = std::fabs(_particles[x].vel_y) * -1 + 100;
+                _particles[x].vel_y = std::fabs(_particles[x].vel_y) * -1 + 1000;
 
-            _particles[x].out_of_bounds = false;
+            _particles[x].out_of_bounds = 0;
         }
 
         // Border checks
@@ -66,24 +66,34 @@ void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
         if (_particles[x].xpos - radius < _rectangle_dims[bottom_left_x]) // check border left
         {
             _particles[x].vel_x = std::fabs(_particles[x].vel_x) * _bounce_losses;
-            _particles[x].out_of_bounds = true;
+            _particles[x].xpos += _particles->radius/80;
+            _particles[x].out_of_bounds +=2;
         }
         else if (_particles[x].xpos + radius > _rectangle_dims[top_right_x]) // check border right
         {
             _particles[x].vel_x = std::fabs(_particles[x].vel_x) * -1 * _bounce_losses;
-            _particles[x].out_of_bounds = true;
+            _particles[x].xpos -= _particles[x].radius/80;
+            _particles[x].out_of_bounds +=2;
+        }
+        else {
+            _particles[x].out_of_bounds *=0.5; // if i just minus 1 then will intager underflow and bump
         }
 
         // Y
         if (_particles[x].ypos - radius < _rectangle_dims[bottom_left_y]) // check border below
         {
             _particles[x].vel_y = std::fabs(_particles[x].vel_y) * _bounce_losses;
-            _particles[x].out_of_bounds = true;
+            _particles[x].ypos += _particles[x].radius/80;
+            _particles[x].out_of_bounds +=2;
         }
         else if (_particles[x].ypos + radius > _rectangle_dims[top_right_y]) // check border above
         {
             _particles[x].vel_y = std::fabs(_particles[x].vel_y) * -1 * _bounce_losses;
-            _particles[x].out_of_bounds = true;
+            _particles[x].ypos -= _particles[x].radius/80;
+            _particles[x].out_of_bounds +=2;
+        }
+        else {
+            _particles[x].out_of_bounds *=0.5;
         }
 
         // Finding Speeds
@@ -131,7 +141,7 @@ Uniform_Sphere_Sim_2d::Uniform_Sphere_Sim_2d()
     , _coordinate_array(nullptr)
     , _particles(nullptr)
     , _time_modifier(1)
-    , _bounce_losses(1)
+    , _bounce_losses(0.5)
 
 {
     _rectangle_dims[0] = 10;
