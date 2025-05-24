@@ -81,7 +81,7 @@ private: // Member Variables
 private: // Member Functions
     void dirtyCollisionDetector();
     void dirtyColliderProcess(
-        const std::vector<particle_2d*>& particles);
+        std::vector<particle_2d*>& particles);
 };
 
 }

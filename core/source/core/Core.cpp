@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <iostream>
 #include <ostream>
+#include <utility>
 #include <vector>
 
 namespace crbn
@@ -140,18 +141,16 @@ size_t Uniform_Sphere_Sim_2d::setParticleCount(const size_t& particles)
 void Uniform_Sphere_Sim_2d::dirtyCollisionDetector()
 {
     // divides particles up into 3d chunks
-    std::vector<std::vector<std::vector<particle_2d>>> xyChunks;
-    xyChunks.resize(_chunks.first);
+    // std::vector<std::vector<std::vector<particle_2d*>>> xyChunks;
+    std::vector<std::vector<particle_2d*>> xyChunks;
 
     int chunksCount = _chunks.first * _chunks.second;
 
+    xyChunks.resize(chunksCount);
+
     for (auto& x : xyChunks)
     {
-        x.resize(_chunks.second);
-        for (auto& y : x)
-        {
-            y.reserve(((float)_particle_count / chunksCount) * 1.5);
-        }
+        x.reserve(((float)_particle_count / chunksCount) * 2 + 5);
     }
 
     for (int i = 0; i < _particle_count; i++)
@@ -174,7 +173,8 @@ void Uniform_Sphere_Sim_2d::dirtyCollisionDetector()
                 for (int x = 0; x < _chunks.first; x++)
                     if (_particles[i].xpos < (_rectangle_dims[bottom_left_x] + (x + 1) * lenx))
                     {
-                        xyChunks[x][y].emplace_back(_particles[i]);
+                        xyChunks[x + y * _chunks.second].emplace_back(&_particles[i]);
+                        // xyChunks[x][y].emplace_back(&_particles[i]);
                         x = _chunks.first;
                         y = _chunks.second;
                     }
@@ -182,19 +182,54 @@ void Uniform_Sphere_Sim_2d::dirtyCollisionDetector()
         }
     }
 
-    for (int x = 0; x < _chunks.first; x++)
-        for (int y = 0; y < _chunks.second; y++)
+    for (int y = 0; y < _chunks.second; y++)
+        for (int x = 0; x < _chunks.first; x++)
         {
+            // Logging
             std::cout << "\nCHUNK (" << x << "," << y << ")  DATA : \n";
+            for (auto& z : xyChunks[x + y * _chunks.second])
+                std::cout << "(" << z->xpos << "," << z->ypos << ")\n";
 
-            for (auto& z : xyChunks[x][y])
-                std::cout << "(" << z.xpos << "," << z.ypos << ")\n";
+            // Checking for multiple particles in 1 Chunk
+
+            if (xyChunks[x + y * _chunks.second].size() >= 2)
+            {
+                std::cout << "Size" << xyChunks[x + y * _chunks.second].size() << std::endl;
+                dirtyColliderProcess(xyChunks[x + y * _chunks.second]);
+            }
         }
     std::cout << std::endl;
 }
 
-void Uniform_Sphere_Sim_2d::dirtyColliderProcess(const std::vector<particle_2d*>& particles) { }
+void Uniform_Sphere_Sim_2d::dirtyColliderProcess(std::vector<particle_2d*>& particles)
+{
+    // Check for colission
+    auto collision_check = [&](particle_2d& p1, particle_2d& p2) -> bool
+    {
+        if (sqrt(pow(p1.xpos - p2.xpos, 2) + pow(p1.ypos - p2.ypos, 2)) < (p1.radius + p2.radius))
+            return true;
 
+        return false;
+    };
+
+    for (int y = 0; y < _chunks.second; y++)
+    {
+        float yval = y * _chunks.second;
+        for (int x = 0; x < _chunks.first; x++)
+        {
+            for (int x1 = 1; x1 < _chunks.first; x1++)
+                for (int y1 = 1; y1 < _chunks.second; y1++)
+                {
+                    float yval1 = y1 * _chunks.second;
+                    if (collision_check(*particles[x + yval], *particles[x1 + yval1]))
+                    {
+                        std::swap(particles[x + yval]->vel_x, particles[x1 + yval]->vel_y);
+                        std::swap(particles[x + yval]->vel_y, particles[x1 + yval]->vel_x);
+                    }
+                }
+        }
+    }
+}
 Uniform_Sphere_Sim_2d::Uniform_Sphere_Sim_2d()
     : _coords_ready(false)
     , _coordinate_array_size(0)
