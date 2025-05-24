@@ -79,7 +79,7 @@ int main(int, char**)
 
     // Create window with graphics context
     GLFWwindow* window
-        = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", nullptr, nullptr);
+        = glfwCreateWindow(1920, 1080, "Dear ImGui GLFW+OpenGL3 example", nullptr, nullptr);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
@@ -142,7 +142,7 @@ int main(int, char**)
 
     int particles = 10;
     int unset_particles = 10;
-    crbn::coord_type radius = 10;
+    float radius = 3;
     sim.setParticleCount(particles);
 
     // Set the dimensions of the particle box
@@ -222,7 +222,6 @@ int main(int, char**)
             { (float)sim._rectangle_dims[2], io.DisplaySize.y - (float)sim._rectangle_dims[1] },
             ImGui::GetColorU32({ 255, 255, 255, 255 }));
 
-
         {
             ImGui::Begin("WINDOW");
 
@@ -236,14 +235,14 @@ int main(int, char**)
 
             static float tmpdbl;
 
-            ImGui::SliderFloat("TimeModifier", &tmpdbl, 0, 2000);
+            ImGui::SliderFloat("TimeModifier", &tmpdbl, 0, 20);
             sim.setTimeModifier(tmpdbl);
 
             ImGui::SliderInt4("BOXBOX", (int*)&sim._rectangle_dims, 0, 3000);
 
             if (ImGui::Button("Randomise Speeds"))
                 randomise();
-            ImGui::SliderInt("Number of particles", &unset_particles, 1, 100000);
+            ImGui::SliderInt("Number of particles", &unset_particles, 1, 1000);
             if (ImGui::Button("Apply Particle change"))
             {
                 sim.setParticleCount(unset_particles);
@@ -252,6 +251,8 @@ int main(int, char**)
                 crbn::coord_type* coordbuf = sim.getCoordBuf();
                 particles = unset_particles;
             }
+            ImGui::SliderFloat("Radius", &radius, 1, 100);
+            ImGui::SliderFloat("gravity", (float*)&sim.gravity, -0, -100);
             ImGui::End();
         }
 

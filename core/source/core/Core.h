@@ -66,6 +66,7 @@ public: // Public callable functions :
     /// The ammount of divisions to split up screen
     std::pair<int, int> _chunks;
 
+    float gravity = -9.81;
 private: // Member Variables
     std::vector<coord_type> _coordinate_array;
     std::size_t _coordinate_array_size;
@@ -74,9 +75,6 @@ private: // Member Variables
     std::vector<particle_2d> _particles;
 
     // temporary :
-    particle_2d particle;
-    coord_type tempmod;
-    coord_type gravity = -9.81;
 
 private: // Member Functions
     void dirtyCollisionDetector();

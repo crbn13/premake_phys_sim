@@ -39,6 +39,8 @@ void Uniform_Sphere_Sim_2d::setTimeModifier(const coord_type& time_modifier)
 
 void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
 {
+    dirtyCollisionDetector();
+
     _coords_ready = false;
     coord_type deltaT = elapsedTime * _time_modifier;
 
@@ -53,13 +55,13 @@ void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
         if (_particles[x].out_of_bounds > 10)
         {
             if (_particles[x].xpos - radius < _rectangle_dims[bottom_left_x])
-                _particles[x].vel_x = std::fabs(_particles[x].vel_x) + 1000;
+                _particles[x].vel_x = std::fabs(_particles[x].vel_x) + 10;
             else if (_particles[x].xpos + radius > _rectangle_dims[top_right_x])
-                _particles[x].vel_x = std::fabs(_particles[x].vel_x) * -1 - 1000;
+                _particles[x].vel_x = std::fabs(_particles[x].vel_x) * -1 - 10;
             if (_particles[x].ypos - radius < _rectangle_dims[bottom_left_y])
-                _particles[x].vel_y = std::fabs(_particles[x].vel_y) + 1000;
+                _particles[x].vel_y = std::fabs(_particles[x].vel_y) + 10;
             else if (_particles[x].ypos + radius > _rectangle_dims[top_right_y])
-                _particles[x].vel_y = std::fabs(_particles[x].vel_y) * -1 + 1000;
+                _particles[x].vel_y = std::fabs(_particles[x].vel_y) * -1 + 10;
 
             _particles[x].out_of_bounds = 0;
         }
@@ -117,7 +119,6 @@ void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
         _coordinate_array[i + 1] = _particles[x].ypos;
     }
 
-    dirtyCollisionDetector();
 
     _coords_ready = true;
 
@@ -168,10 +169,10 @@ void Uniform_Sphere_Sim_2d::dirtyCollisionDetector()
         for (int y = 0; y < _chunks.second; y++)
         { // i could do binary search instead
             // std::cout << _rectangle_dims[bottom_left_y] + (y+1) * len << "\n";
-            if (_particles[i].ypos < (_rectangle_dims[bottom_left_y] + (y + 1) * leny))
+            if (_particles[i].ypos < _particles[i].radius*2 + (_rectangle_dims[bottom_left_y] + (y + 1) * leny))
             {
                 for (int x = 0; x < _chunks.first; x++)
-                    if (_particles[i].xpos < (_rectangle_dims[bottom_left_x] + (x + 1) * lenx))
+                    if (_particles[i].xpos <_particles[i].radius*2 + (_rectangle_dims[bottom_left_x] + (x + 1) * lenx))
                     {
                         xyChunks[x + y * _chunks.second].emplace_back(&_particles[i]);
                         // xyChunks[x][y].emplace_back(&_particles[i]);
@@ -235,7 +236,6 @@ void Uniform_Sphere_Sim_2d::dirtyColliderProcess(std::vector<particle_2d*>& part
 Uniform_Sphere_Sim_2d::Uniform_Sphere_Sim_2d()
     : _coords_ready(false)
     , _coordinate_array_size(0)
-    , tempmod(0)
     , _time_modifier(1)
     , _bounce_losses(0.5)
     , _chunks(5, 5)
