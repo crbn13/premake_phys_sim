@@ -47,7 +47,7 @@ void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
 
         // Checks for out of bounds particles, and gives them a helping hand to get back within
         // bounds
-        if (_particles[x].out_of_bounds > 100)
+        if (_particles[x].out_of_bounds > 10)
         {
             if (_particles[x].xpos - radius < _rectangle_dims[bottom_left_x])
                 _particles[x].vel_x = std::fabs(_particles[x].vel_x) + 1000;
@@ -67,16 +67,16 @@ void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
         {
             _particles[x].vel_x = std::fabs(_particles[x].vel_x) * _bounce_losses;
             _particles[x].xpos += _particles->radius/80;
-            _particles[x].out_of_bounds +=2;
+            _particles[x].out_of_bounds +=8;
         }
         else if (_particles[x].xpos + radius > _rectangle_dims[top_right_x]) // check border right
         {
             _particles[x].vel_x = std::fabs(_particles[x].vel_x) * -1 * _bounce_losses;
             _particles[x].xpos -= _particles[x].radius/80;
-            _particles[x].out_of_bounds +=2;
+            _particles[x].out_of_bounds +=8;
         }
         else {
-            _particles[x].out_of_bounds *=0.5; // if i just minus 1 then will intager underflow and bump
+            _particles[x].out_of_bounds *=0.8; // if i just minus 1 then will intager underflow and bump
         }
 
         // Y
@@ -84,16 +84,16 @@ void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
         {
             _particles[x].vel_y = std::fabs(_particles[x].vel_y) * _bounce_losses;
             _particles[x].ypos += _particles[x].radius/80;
-            _particles[x].out_of_bounds +=2;
+            _particles[x].out_of_bounds +=8;
         }
         else if (_particles[x].ypos + radius > _rectangle_dims[top_right_y]) // check border above
         {
             _particles[x].vel_y = std::fabs(_particles[x].vel_y) * -1 * _bounce_losses;
             _particles[x].ypos -= _particles[x].radius/80;
-            _particles[x].out_of_bounds +=2;
+            _particles[x].out_of_bounds +=8;
         }
         else {
-            _particles[x].out_of_bounds *=0.5;
+            _particles[x].out_of_bounds *=0.8;
         }
 
         // Finding Speeds
