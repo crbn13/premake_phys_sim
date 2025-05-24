@@ -203,33 +203,35 @@ void Uniform_Sphere_Sim_2d::dirtyCollisionDetector()
 
 void Uniform_Sphere_Sim_2d::dirtyColliderProcess(std::vector<particle_2d*>& particles)
 {
+    std::cout << " Dirty Start \n" << std::flush;
     // Check for colission
-    auto collision_check = [&](particle_2d& p1, particle_2d& p2) -> bool
+
+    auto collision_check = [&](const particle_2d* p1, const particle_2d* p2) -> bool
     {
-        if (sqrt(pow(p1.xpos - p2.xpos, 2) + pow(p1.ypos - p2.ypos, 2)) < (p1.radius + p2.radius))
+        std::cout << "collision checker " << std::endl;
+        if (sqrt(pow(p1->xpos - p2->xpos, 2) + pow(p1->ypos - p2->ypos, 2))
+            < (p1->radius + p2->radius))
             return true;
 
         return false;
     };
 
-    for (int y = 0; y < _chunks.second; y++)
-    {
-        float yval = y * _chunks.second;
-        for (int x = 0; x < _chunks.first; x++)
-        {
-            for (int x1 = 1; x1 < _chunks.first; x1++)
-                for (int y1 = 1; y1 < _chunks.second; y1++)
-                {
-                    float yval1 = y1 * _chunks.second;
-                    if (collision_check(*particles[x + yval], *particles[x1 + yval1]))
-                    {
-                        std::swap(particles[x + yval]->vel_x, particles[x1 + yval]->vel_y);
-                        std::swap(particles[x + yval]->vel_y, particles[x1 + yval]->vel_x);
-                    }
-                }
-        }
-    }
+    for (int x = 0; x< particles.size()-1; x++)
+        for (int x1 = 1; x1 < particles.size(); x1++)
+            if (collision_check(particles[x], particles[x1]))
+            {
+                std::cout << "SWAPPING\n" << std::flush;
+                coord_type tmpx, tmpx1;
+                tmpx = particles[x]->vel_y;
+                tmpx1 = particles[x1]->vel_y;
+                particles[x]->vel_y = particles[x1]->vel_x;
+                particles[x1]->vel_y = particles[x]->vel_x;
+                particles[x]->vel_x = tmpx1;
+                particles[x1]->vel_x = tmpx;
+            }
+    std::cout << " Dirty End \n" << std::flush;
 }
+
 Uniform_Sphere_Sim_2d::Uniform_Sphere_Sim_2d()
     : _coords_ready(false)
     , _coordinate_array_size(0)
