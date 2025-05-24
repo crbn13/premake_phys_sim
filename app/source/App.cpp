@@ -13,6 +13,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "imgui_internal.h"
 #include <GL/gl.h>
 #include <stdio.h>
 #define GL_SILENCE_DEPRECATION
@@ -137,7 +138,9 @@ int main(int, char**)
 
     sim.setTimeModifier(20);
 
-    sim.setParticleCount(5);
+    int particles = 20;
+    crbn::coord_type radius = 20;
+    sim.setParticleCount(particles);
 
     // Set the dimensions of the particle box
     sim._rectangle_dims[0] = 10;
@@ -145,10 +148,16 @@ int main(int, char**)
     sim._rectangle_dims[2] = 1000;
     sim._rectangle_dims[3] = 1000;
 
-    crbn::particle_2d tmpparticle;
-    tmpparticle.ypos = 800;
-
-    sim.setParticle(tmpparticle, 0);
+    for (int i = 0; i < particles; i++)
+    {
+        crbn::particle_2d tmp;
+        tmp.vel_y = rand() % 200;
+        tmp.vel_x = rand() % 200;
+        tmp.radius = radius;
+        tmp.xpos = 50;
+        tmp.ypos = 50;
+        sim.setParticle(tmp, i);
+    }
 
     sim.runAsync(0);
 
@@ -184,21 +193,25 @@ int main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        crbn::pos tempPos;
         crbn::coord_type* coordbuf = sim.getCoordBuf();
-        std::cout << "coords" << coordbuf[0] << " " << coordbuf[1] << std::endl;
-
-        tempPos.x = coordbuf[0];
-        tempPos.y = coordbuf[1];
-
         auto* imgui_drawlist = ImGui::GetBackgroundDrawList();
+        for (int i = 0; i < particles * 2; i += 2)
+        {
+            crbn::pos tempPos;
+            tempPos.x = coordbuf[i];
+            tempPos.y = coordbuf[1 + i];
+            imgui_drawlist->AddCircleFilled(
+                { float(tempPos.x), io.DisplaySize.y - float(tempPos.y) },
+                radius,
+                ImGui::GetColorU32({ 255, 255, 255, 255 }));
+        }
 
-        imgui_drawlist->AddCircleFilled(
-            { float(100 + tempPos.x), float(tempPos.y) },
-            50,
-            ImGui::GetColorU32({ 100, 100, 100, 100 }));
-        imgui_drawlist->AddCircleFilled(
-            { 200, 200 }, 10, ImGui::GetColorU32({ 100, 255, 100, 100 }));
+        imgui_drawlist->AddQuad(
+            { (float)sim._rectangle_dims[0], io.DisplaySize.y - (float)sim._rectangle_dims[1] },
+            { (float)sim._rectangle_dims[0], io.DisplaySize.y - (float)sim._rectangle_dims[3] },
+            { (float)sim._rectangle_dims[2], io.DisplaySize.y - (float)sim._rectangle_dims[3] },
+            { (float)sim._rectangle_dims[2], io.DisplaySize.y - (float)sim._rectangle_dims[1] },
+            ImGui::GetColorU32({ 255, 255, 255, 255 }));
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You
         // can browse its code to learn more about Dear ImGui!).
@@ -234,7 +247,7 @@ int main(int, char**)
             ImGui::SliderFloat("TimeModifier", &tmpdbl, 0, 200);
             sim.setTimeModifier(tmpdbl);
 
-            ImGui::SliderInt4("BOXBOX", (int*)&sim._rectangle_dims, 0, 1000);
+            ImGui::SliderInt4("BOXBOX", (int*)&sim._rectangle_dims, 0, 3000);
 
             ImGui::End();
         }

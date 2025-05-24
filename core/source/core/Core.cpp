@@ -24,18 +24,23 @@ coord_type* Uniform_Sphere_Sim_2d::getCoordBuf()
     return _coordinate_array;
 }
 
-void Uniform_Sphere_Sim_2d::setParticle(particle_2d& part, size_t element) { _particles[element] = part; }
-    
-void Uniform_Sphere_Sim_2d::setTimeModifier(coord_type time_modifier) { _time_modifier = time_modifier ; }
+void Uniform_Sphere_Sim_2d::setParticle(const particle_2d& part, const size_t& element)
+{
+    _particles[element] = part;
+}
 
-void Uniform_Sphere_Sim_2d::runAsync(float elapsedTime)
+void Uniform_Sphere_Sim_2d::setTimeModifier(const coord_type& time_modifier)
+{
+    _time_modifier = time_modifier;
+}
+
+void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
 {
     _coords_ready = false;
     coord_type deltaT = elapsedTime * _time_modifier;
 
     for (int i = 0; i < _coordinate_array_size; i += 2)
     {
-
         // Finding Speeds
         int x = i / 2;
         coord_type uvx = _particles[x].vel_x;
@@ -54,18 +59,46 @@ void Uniform_Sphere_Sim_2d::runAsync(float elapsedTime)
         // Find radius
         coord_type radius = _particles->radius;
 
-        // Border checks 
-        // X
-        if (_particles[x].xpos - radius < _rectangle_dims[bottom_left_x]) // check collision left
-            _particles[x].vel_x = std::fabs(_particles[x].vel_x);
-        if (_particles[x].xpos + radius > _rectangle_dims[top_right_x]) // check collision right
-            _particles[x].vel_x = std::fabs(_particles[x].vel_x) * -1;
-        // Y 
-        if (_particles[x].ypos - radius < _rectangle_dims[bottom_left_y]) // check collision below
-            _particles[x].vel_y = std::fabs(_particles[x].vel_y);
-        if (_particles[x].ypos + radius > _rectangle_dims[top_right_y]) // check collision above
-            _particles[x].vel_y = std::fabs(_particles[x].vel_y) * -1;
+        // Checks for out of bounds particles, and gives them a helping hand to get back within
+        // bounds
+        if (_particles[x].out_of_bounds)
+        {
+            if (_particles[x].xpos - radius < _rectangle_dims[bottom_left_x])
+                _particles[x].vel_x = std::fabs(_particles[x].vel_x) + 100;
+            else if (_particles[x].xpos + radius > _rectangle_dims[top_right_x])
+                _particles[x].vel_x = std::fabs(_particles[x].vel_x) * -1 - 100;
+            if (_particles[x].ypos - radius < _rectangle_dims[bottom_left_y])
+                _particles[x].vel_y = std::fabs(_particles[x].vel_y) + 100;
+            else if (_particles[x].ypos + radius > _rectangle_dims[top_right_y])
+                _particles[x].vel_y = std::fabs(_particles[x].vel_y) * -1 + 100;
 
+            _particles[x].out_of_bounds = false;
+        }
+
+        // Border checks
+        // X
+        if (_particles[x].xpos - radius < _rectangle_dims[bottom_left_x]) // check border left
+        {
+            _particles[x].vel_x = std::fabs(_particles[x].vel_x);
+            _particles[x].out_of_bounds = true;
+        }
+        else if (_particles[x].xpos + radius > _rectangle_dims[top_right_x]) // check border right
+        {
+            _particles[x].vel_x = std::fabs(_particles[x].vel_x) * -1;
+            _particles[x].out_of_bounds = true;
+        }
+
+        // Y
+        if (_particles[x].ypos - radius < _rectangle_dims[bottom_left_y]) // check border below
+        {
+            _particles[x].vel_y = std::fabs(_particles[x].vel_y);
+            _particles[x].out_of_bounds = true;
+        }
+        else if (_particles[x].ypos + radius > _rectangle_dims[top_right_y]) // check border above
+        {
+            _particles[x].vel_y = std::fabs(_particles[x].vel_y) * -1;
+            _particles[x].out_of_bounds = true;
+        }
     }
 
     _coords_ready = true;
@@ -73,7 +106,7 @@ void Uniform_Sphere_Sim_2d::runAsync(float elapsedTime)
     return;
 }
 
-size_t Uniform_Sphere_Sim_2d::setParticleCount(size_t particles)
+size_t Uniform_Sphere_Sim_2d::setParticleCount(const size_t& particles)
 {
     _particle_count = particles;
 
@@ -85,7 +118,7 @@ size_t Uniform_Sphere_Sim_2d::setParticleCount(size_t particles)
             delete[] _particles;
 
         _coordinate_array_size = particles * 2;
-        _coordinate_array = new coord_type[_coordinate_array_size]{0};
+        _coordinate_array = new coord_type[_coordinate_array_size] { 0 };
         _particles = new particle_2d[_particle_count];
     }
 
@@ -98,12 +131,13 @@ Uniform_Sphere_Sim_2d::Uniform_Sphere_Sim_2d()
     , tempmod(0)
     , _coordinate_array(nullptr)
     , _particles(nullptr)
+    , _time_modifier(1)
 
 {
-    _rectangle_dims[0]=10;
-    _rectangle_dims[1]=10;
-    _rectangle_dims[2]=100;
-    _rectangle_dims[3]=100;
+    _rectangle_dims[0] = 10;
+    _rectangle_dims[1] = 10;
+    _rectangle_dims[2] = 100;
+    _rectangle_dims[3] = 100;
 }
 
 Uniform_Sphere_Sim_2d::~Uniform_Sphere_Sim_2d()
