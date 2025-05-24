@@ -73,7 +73,7 @@ private: // Member Variables
     // temporary :
     particle_2d particle;
     coord_type tempmod;
-    coord_type acceleration = -9.81;
+    coord_type gravity = -9.81;
 
 private: // Member Functions
 };

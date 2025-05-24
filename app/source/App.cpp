@@ -83,11 +83,13 @@ int main(int, char**)
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(0); // lots of fps maby
     // glfwSwapInterval(1); // Enable vsync
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
@@ -147,6 +149,8 @@ int main(int, char**)
     sim._rectangle_dims[1] = 10;
     sim._rectangle_dims[2] = 1000;
     sim._rectangle_dims[3] = 1000;
+
+    sim._bounce_losses = 0.5;
 
     for (int i = 0; i < particles; i++)
     {

@@ -41,21 +41,7 @@ void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
 
     for (int i = 0; i < _coordinate_array_size; i += 2)
     {
-        // Finding Speeds
         int x = i / 2;
-        coord_type uvx = _particles[x].vel_x;
-        _particles[x].vel_x = uvx;
-        coord_type uvy = _particles[x].vel_y;
-        _particles[x].vel_y = uvy + acceleration * deltaT;
-
-        // Position increase
-        _particles[x].xpos += deltaT * 0.5 * (uvx + _particles[x].vel_x);
-        _particles[x].ypos += deltaT * 0.5 * (uvy + _particles[x].vel_y);
-
-        // Update array
-        _coordinate_array[i] = _particles[x].xpos;
-        _coordinate_array[i + 1] = _particles[x].ypos;
-
         // Find radius
         coord_type radius = _particles->radius;
 
@@ -79,28 +65,41 @@ void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
         // X
         if (_particles[x].xpos - radius < _rectangle_dims[bottom_left_x]) // check border left
         {
-            _particles[x].vel_x = std::fabs(_particles[x].vel_x);
+            _particles[x].vel_x = std::fabs(_particles[x].vel_x) * _bounce_losses;
             _particles[x].out_of_bounds = true;
         }
         else if (_particles[x].xpos + radius > _rectangle_dims[top_right_x]) // check border right
         {
-            _particles[x].vel_x = std::fabs(_particles[x].vel_x) * -1;
+            _particles[x].vel_x = std::fabs(_particles[x].vel_x) * -1 * _bounce_losses;
             _particles[x].out_of_bounds = true;
         }
 
         // Y
         if (_particles[x].ypos - radius < _rectangle_dims[bottom_left_y]) // check border below
         {
-            _particles[x].vel_y = std::fabs(_particles[x].vel_y);
+            _particles[x].vel_y = std::fabs(_particles[x].vel_y) * _bounce_losses;
             _particles[x].out_of_bounds = true;
         }
         else if (_particles[x].ypos + radius > _rectangle_dims[top_right_y]) // check border above
         {
-            _particles[x].vel_y = std::fabs(_particles[x].vel_y) * -1;
+            _particles[x].vel_y = std::fabs(_particles[x].vel_y) * -1 * _bounce_losses;
             _particles[x].out_of_bounds = true;
         }
-    }
 
+        // Finding Speeds
+        coord_type uvx = _particles[x].vel_x;
+        _particles[x].vel_x = uvx;
+        coord_type uvy = _particles[x].vel_y;
+        _particles[x].vel_y = uvy + gravity * deltaT;
+
+        // Position increase
+        _particles[x].xpos += deltaT * 0.5 * (uvx + _particles[x].vel_x);
+        _particles[x].ypos += deltaT * 0.5 * (uvy + _particles[x].vel_y);
+
+        // Update array
+        _coordinate_array[i] = _particles[x].xpos;
+        _coordinate_array[i + 1] = _particles[x].ypos;
+    }
     _coords_ready = true;
 
     return;
@@ -132,6 +131,7 @@ Uniform_Sphere_Sim_2d::Uniform_Sphere_Sim_2d()
     , _coordinate_array(nullptr)
     , _particles(nullptr)
     , _time_modifier(1)
+    , _bounce_losses(1)
 
 {
     _rectangle_dims[0] = 10;
