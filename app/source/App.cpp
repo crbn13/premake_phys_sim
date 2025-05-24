@@ -153,6 +153,8 @@ int main(int, char**)
 
     sim._bounce_losses = 0.9;
 
+    bool pause = false;
+
     auto randomise = [&]()
     {
         for (int i = 0; i < particles; i++)
@@ -237,12 +239,18 @@ int main(int, char**)
 
             ImGui::SliderFloat("TimeModifier", &tmpdbl, 0, 20);
             sim.setTimeModifier(tmpdbl);
+            if (tmpdbl == 0)
+                pause = true;
+            else
+            {
+                pause = false;
+            }
 
             ImGui::SliderInt4("BOXBOX", (int*)&sim._rectangle_dims, 0, 3000);
 
             if (ImGui::Button("Randomise Speeds"))
                 randomise();
-            ImGui::SliderInt("Number of particles", &unset_particles, 1, 1000);
+            ImGui::SliderInt("Number of particles", &unset_particles, 1, 100000);
             if (ImGui::Button("Apply Particle change"))
             {
                 sim.setParticleCount(unset_particles);
@@ -253,11 +261,15 @@ int main(int, char**)
             }
             ImGui::SliderFloat("Radius", &radius, 1, 100);
             ImGui::SliderFloat("gravity", (float*)&sim.gravity, -0, -100);
+            ImGui::SliderInt("Chunk X", &sim._chunks.first, 1, 50);
+            ImGui::SliderInt("Chunk Y", &sim._chunks.second, 1, 50);
+
             ImGui::End();
         }
 
-        sim.runAsync(io.DeltaTime);
-        std::cout << io.DeltaTime << std::endl;
+        if (!pause)
+            sim.runAsync(io.DeltaTime);
+        //std::cout << io.DeltaTime << std::endl;
 
         // Rendering
         ImGui::Render();
