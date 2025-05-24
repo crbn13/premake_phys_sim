@@ -3,8 +3,11 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
+#include <future>
 #include <iostream>
+#include <memory>
 #include <ostream>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -39,7 +42,6 @@ void Uniform_Sphere_Sim_2d::setTimeModifier(const coord_type& time_modifier)
 
 void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
 {
-    dirtyCollisionDetector();
 
     _coords_ready = false;
     coord_type deltaT = elapsedTime * _time_modifier;
@@ -119,6 +121,8 @@ void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
         _coordinate_array[i + 1] = _particles[x].ypos;
     }
 
+    dirtyCollisionDetector();
+
     _coords_ready = true;
 
     return;
@@ -184,6 +188,56 @@ void Uniform_Sphere_Sim_2d::dirtyCollisionDetector()
         }
     }
 
+    auto dirtyColliderProcess = [&](std::vector<particle_2d*>& particles)
+    {
+        // Check for colission
+
+        coord_type overlap;
+
+        auto collision_check = [&](const particle_2d* p1, const particle_2d* p2) -> bool
+        {
+            coord_type centre_distances
+                = (sqrt(pow(p1->xpos - p2->xpos, 2) + pow(p1->ypos - p2->ypos, 2)));
+
+            overlap = (p1->radius + p2->radius) - centre_distances;
+
+            if (overlap > 0)
+                return true;
+
+            return false;
+        };
+
+        for (int x = 0; x < particles.size() - 1; x++)
+            for (int x1 = 1; x1 < particles.size(); x1++)
+                if (collision_check(particles[x], particles[x1]))
+                {
+                    // std::cout << "SWAPPING\n" << std::flush;
+                    coord_type tmpx, tmpx1;
+                    tmpx = particles[x]->vel_y;
+                    tmpx1 = particles[x1]->vel_y;
+                    particles[x]->vel_y = particles[x1]->vel_y;
+                    particles[x1]->vel_y = particles[x]->vel_y;
+                    particles[x]->vel_y = tmpx1; // = vel_x
+                    particles[x1]->vel_y = tmpx; // = vel_x
+
+                    // Adding extra repulsive force when particles overlap :
+
+                    coord_type dx = particles[x]->xpos - particles[x1]->xpos;
+                    coord_type dy = particles[x]->ypos - particles[x1]->ypos;
+                    coord_type force = 2 * overlap / (particles[x]->radius + particles[x]->radius);
+
+                    // Using the distances from the center can calculate a rough value for
+                    // components of forces
+
+                    particles[x]->vel_x += dx * force;
+                    particles[x1]->vel_x += dx * force * -1;
+                    particles[x]->vel_y += dy * force;
+                    particles[x1]->vel_y += dy * force * -1;
+                }
+        // std::cout << " Dirty End \n" << std::flush;
+    };
+
+    std::vector<std::thread> threads;
     for (int y = 0; y < _chunks.second; y++)
         for (int x = 0; x < _chunks.first; x++)
         {
@@ -196,58 +250,18 @@ void Uniform_Sphere_Sim_2d::dirtyCollisionDetector()
 
             if (xyChunks[x + y * _chunks.second].size() >= 2)
             {
-                dirtyColliderProcess(xyChunks[x + y * _chunks.second]);
+                threads.push_back(
+                    std::thread(dirtyColliderProcess, xyChunks[x + y * _chunks.second]));
+                threads.back().detach();
             }
         }
-}
 
-void Uniform_Sphere_Sim_2d::dirtyColliderProcess(std::vector<particle_2d*>& particles)
-{
-    // Check for colission
-
-    coord_type overlap;
-
-    auto collision_check = [&](const particle_2d* p1, const particle_2d* p2) -> bool
+    for (auto& x : threads)
     {
-        coord_type centre_distances
-            = (sqrt(pow(p1->xpos - p2->xpos, 2) + pow(p1->ypos - p2->ypos, 2)));
+        x.join();
+    }
 
-        overlap = (p1->radius + p2->radius) - centre_distances;
-
-        if (overlap > 0)
-            return true;
-
-        return false;
-    };
-
-    for (int x = 0; x < particles.size() - 1; x++)
-        for (int x1 = 1; x1 < particles.size(); x1++)
-            if (collision_check(particles[x], particles[x1]))
-            {
-                // std::cout << "SWAPPING\n" << std::flush;
-                coord_type tmpx, tmpx1;
-                tmpx = particles[x]->vel_y;
-                tmpx1 = particles[x1]->vel_y;
-                particles[x]->vel_y = particles[x1]->vel_y;
-                particles[x1]->vel_y = particles[x]->vel_y;
-                particles[x]->vel_y = tmpx1; // = vel_x
-                particles[x1]->vel_y = tmpx; // = vel_x
-
-                // Adding extra repulsive force when particles overlap :
-
-                coord_type dx = particles[x]->xpos - particles[x1]->xpos;
-                coord_type dy = particles[x]->ypos - particles[x1]->ypos;
-                coord_type force = 2 * overlap / ( particles[x]->radius + particles[x]->radius) ;
-
-                // Using the distances from the center can calculate a rough value for components of
-                // forces
-
-                particles[x]->vel_x += dx * force;
-                particles[x1]->vel_x += dx * force * -1;
-                particles[x]->vel_y += dy * force;
-                particles[x1]->vel_y += dy * force * -1;
-            }
-    // std::cout << " Dirty End \n" << std::flush;
+    return;
 }
 
 Uniform_Sphere_Sim_2d::Uniform_Sphere_Sim_2d()

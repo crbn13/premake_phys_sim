@@ -256,7 +256,6 @@ int main(int, char**)
                 sim.setParticleCount(unset_particles);
                 randomise();
                 sim.runAsync(0);
-                crbn::coord_type* coordbuf = sim.getCoordBuf();
                 particles = unset_particles;
             }
             ImGui::SliderFloat("Radius", &radius, 1, 100);
