@@ -89,7 +89,7 @@ int main(int, char**)
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    
+
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
@@ -141,6 +141,7 @@ int main(int, char**)
     sim.setTimeModifier(20);
 
     int particles = 200;
+    int unset_particles = 200;
     crbn::coord_type radius = 20;
     sim.setParticleCount(particles);
 
@@ -150,18 +151,22 @@ int main(int, char**)
     sim._rectangle_dims[2] = 1000;
     sim._rectangle_dims[3] = 1000;
 
-    sim._bounce_losses = 0.5;
+    sim._bounce_losses = 0.9;
 
-    for (int i = 0; i < particles; i++)
+    auto randomise = [&]()
     {
-        crbn::particle_2d tmp;
-        tmp.vel_y = rand() % 200;
-        tmp.vel_x = rand() % 200;
-        tmp.radius = radius;
-        tmp.xpos = 50;
-        tmp.ypos = 50;
-        sim.setParticle(tmp, i);
-    }
+        for (int i = 0; i < particles; i++)
+        {
+            crbn::particle_2d tmp;
+            tmp.vel_y = rand() % 200;
+            tmp.vel_x = rand() % 200;
+            tmp.radius = radius;
+            tmp.xpos = 50;
+            tmp.ypos = 50;
+            sim.setParticle(tmp, i);
+        }
+    };
+    randomise();
 
     sim.runAsync(0);
 
@@ -217,42 +222,36 @@ int main(int, char**)
             { (float)sim._rectangle_dims[2], io.DisplaySize.y - (float)sim._rectangle_dims[1] },
             ImGui::GetColorU32({ 255, 255, 255, 255 }));
 
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You
-        // can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
 
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a
-        // named window.
         {
+            ImGui::Begin("WINDOW");
+
             static float f = 0.0f;
             static int counter = 0;
 
-            ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into
-                                           // it.
-
-            ImGui::Text("This is some useful text."); // Display some text (you can use a format
-                                                      // strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window
-                                                               // open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
-
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f
-                                                         // to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a
-                                                                    // color
             ImGui::Text(
                 "Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / io.Framerate,
                 io.Framerate);
 
-            float tmpdbl;
+            static float tmpdbl;
 
-            ImGui::SliderFloat("TimeModifier", &tmpdbl, 0, 200);
+            ImGui::SliderFloat("TimeModifier", &tmpdbl, 0, 2000);
             sim.setTimeModifier(tmpdbl);
 
             ImGui::SliderInt4("BOXBOX", (int*)&sim._rectangle_dims, 0, 3000);
 
+            if (ImGui::Button("Randomise Speeds"))
+                randomise();
+            ImGui::SliderInt("Number of particles", &unset_particles, 1, 100000);
+            if (ImGui::Button("Apply Particle change"))
+            {
+                sim.setParticleCount(unset_particles);
+                randomise();
+                sim.runAsync(0);
+                crbn::coord_type* coordbuf = sim.getCoordBuf();
+                particles = unset_particles;
+            }
             ImGui::End();
         }
 

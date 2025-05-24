@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -64,11 +65,11 @@ public: // Public callable functions :
     };
 
 private: // Member Variables
-    coord_type* _coordinate_array;
+    std::vector<coord_type> _coordinate_array;
     std::size_t _coordinate_array_size;
     bool _coords_ready;
     size_t _particle_count;
-    particle_2d* _particles;
+    std::vector<particle_2d> _particles;
 
     // temporary :
     particle_2d particle;
