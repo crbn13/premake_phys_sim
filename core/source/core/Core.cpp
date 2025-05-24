@@ -160,14 +160,14 @@ void Uniform_Sphere_Sim_2d::dirtyCollisionDetector()
         std::cout << "num = " << _particles[i].ypos;
 
 
-        coord_type len = ((_rectangle_dims[top_right_y]-_rectangle_dims[bottom_left_y])/(float)_chunks.second);
-        std::cout << "len = " << len << std::endl;;
+        coord_type leny = ((_rectangle_dims[top_right_y]-_rectangle_dims[bottom_left_y])/(float)_chunks.second);
+        coord_type lenx = ((_rectangle_dims[top_right_x]-_rectangle_dims[bottom_left_x])/(float)_chunks.first);
+        //std::cout << "len = " << len << std::endl;;
         // sort out particles into their y chunks
         for (int y = 0 ; y < _chunks.second; y++)
         {// i could do binary search instead 
-
-            std::cout << _rectangle_dims[bottom_left_y] + (y+1) * len << "\n";
-            if (_particles[i].ypos < (_rectangle_dims[bottom_left_y] + (y+1) * len) )
+            //std::cout << _rectangle_dims[bottom_left_y] + (y+1) * len << "\n";
+            if (_particles[i].ypos < (_rectangle_dims[bottom_left_y] + (y+1) * leny) )
             {
                 yChunks[y].emplace_back(_particles[i]);
                 y = _chunks.second;
