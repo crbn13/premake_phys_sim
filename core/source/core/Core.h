@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vector>
 #include <array>
 #include <cmath>
 #include <cstddef>
 #include <thread>
+#include <vector>
 namespace crbn
 {
 
@@ -63,6 +63,8 @@ public: // Public callable functions :
         top_right_x,
         top_right_y,
     };
+    /// The ammount of divisions to split up screen
+    std::pair<int, int> _chunks;
 
 private: // Member Variables
     std::vector<coord_type> _coordinate_array;
@@ -77,6 +79,9 @@ private: // Member Variables
     coord_type gravity = -9.81;
 
 private: // Member Functions
+    void dirtyCollisionDetector();
+    void dirtyColliderProcess(
+        const std::vector<coord_type*>& coords, const std::vector<particle_2d*>& particles);
 };
 
 }

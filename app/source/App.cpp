@@ -140,9 +140,9 @@ int main(int, char**)
 
     sim.setTimeModifier(20);
 
-    int particles = 200;
-    int unset_particles = 200;
-    crbn::coord_type radius = 20;
+    int particles = 10;
+    int unset_particles = 10;
+    crbn::coord_type radius = 10;
     sim.setParticleCount(particles);
 
     // Set the dimensions of the particle box
