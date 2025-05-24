@@ -163,8 +163,8 @@ int main(int, char**)
             tmp.vel_y = rand() % 200;
             tmp.vel_x = rand() % 200;
             tmp.radius = radius;
-            tmp.xpos = 50;
-            tmp.ypos = 50;
+            tmp.xpos = rand() % sim._rectangle_dims[2] +sim._rectangle_dims[0] ;
+            tmp.ypos = rand() % sim._rectangle_dims[3] +sim._rectangle_dims[1] ;
             sim.setParticle(tmp, i);
         }
     };
@@ -250,19 +250,21 @@ int main(int, char**)
 
             if (ImGui::Button("Randomise Speeds"))
                 randomise();
-            ImGui::SliderInt("Number of particles", &unset_particles, 1, 100000);
+            ImGui::SliderInt("Number of particles", &unset_particles, 1, 1000);
             if (ImGui::Button("Apply Particle change"))
             {
                 sim.setParticleCount(unset_particles);
-                randomise();
                 sim.runAsync(0);
                 particles = unset_particles;
+                randomise();
             }
             ImGui::SliderFloat("Radius", &radius, 1, 100);
             ImGui::SliderFloat("gravity", (float*)&sim.gravity, -0, -100);
             ImGui::SliderInt("Chunk X", &sim._chunks.first, 1, 50);
             ImGui::SliderInt("Chunk Y", &sim._chunks.second, 1, 50);
+            ImGui::Checkbox("ASYNC", &sim.async);
 
+            ImGui::SliderInt("Threads", (int*)&sim.threads, 1, 50);
             ImGui::End();
         }
 

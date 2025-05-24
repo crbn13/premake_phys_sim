@@ -3,6 +3,8 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <functional>
+#include <queue>
 #include <thread>
 #include <vector>
 namespace crbn
@@ -66,7 +68,10 @@ public: // Public callable functions :
     /// The ammount of divisions to split up screen
     std::pair<int, int> _chunks;
 
+    bool async;
+    int threads;
     float gravity = -9.81;
+
 private: // Member Variables
     std::vector<coord_type> _coordinate_array;
     std::size_t _coordinate_array_size;
@@ -78,8 +83,24 @@ private: // Member Variables
 
 private: // Member Functions
     void dirtyCollisionDetector();
-    void dirtyColliderProcess(
-        std::vector<particle_2d*>& particles);
+
+public:
+};
+
+static void dirtyColliderProcess(std::vector<particle_2d*>& particles);
+
+class Thread_Worker
+{
+public:
+    Thread_Worker();
+    void sendJobs(std::queue<std::function<void>>&);
+    void setup(int workers);
+    void sleepWorkers(bool sleeping = true);
+    bool areJobsDone();
+
+    std::vector<std::thread> _workers;
+    std::vector<std::queue<std::function<void>>*> _data;
+    int _worker_count;
 };
 
 }

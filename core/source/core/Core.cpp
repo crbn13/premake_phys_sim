@@ -8,6 +8,7 @@
 #include <memory>
 #include <ostream>
 #include <thread>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -44,6 +45,7 @@ void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
 {
 
     _coords_ready = false;
+    dirtyCollisionDetector();
     coord_type deltaT = elapsedTime * _time_modifier;
 
     for (int i = 0; i < _coordinate_array_size; i += 2)
@@ -121,7 +123,6 @@ void Uniform_Sphere_Sim_2d::runAsync(const float& elapsedTime)
         _coordinate_array[i + 1] = _particles[x].ypos;
     }
 
-    dirtyCollisionDetector();
 
     _coords_ready = true;
 
@@ -141,6 +142,55 @@ size_t Uniform_Sphere_Sim_2d::setParticleCount(const size_t& particles)
 
     return _coordinate_array_size;
 }
+
+void dirtyColliderProcess(std::vector<particle_2d*>& particles)
+{
+    // Check for colission
+
+    coord_type overlap;
+
+    auto collision_check = [&](const particle_2d* p1, const particle_2d* p2) -> bool
+    {
+        coord_type centre_distances
+            = (sqrt(pow(p1->xpos - p2->xpos, 2) + pow(p1->ypos - p2->ypos, 2)));
+
+        overlap = (p1->radius + p2->radius) - centre_distances;
+
+        if (overlap > 0)
+            return true;
+
+        return false;
+    };
+
+    for (int x = 0; x < particles.size() - 1; x++)
+        for (int x1 = 1; x1 < particles.size(); x1++)
+            if (collision_check(particles[x], particles[x1]))
+            {
+                // std::cout << "SWAPPING\n" << std::flush;
+                coord_type tmpx, tmpx1;
+                tmpx = particles[x]->vel_y;
+                tmpx1 = particles[x1]->vel_y;
+                particles[x]->vel_y = particles[x1]->vel_y;
+                particles[x1]->vel_y = particles[x]->vel_y;
+                particles[x]->vel_y = tmpx1; // = vel_x
+                particles[x1]->vel_y = tmpx; // = vel_x
+
+                // Adding extra repulsive force when particles overlap :
+
+                coord_type dx = particles[x]->xpos - particles[x1]->xpos;
+                coord_type dy = particles[x]->ypos - particles[x1]->ypos;
+                coord_type force = 2 * overlap / (particles[x]->radius);
+
+                // Using the distances from the center can calculate a rough value for
+                // components of forces
+
+                particles[x]->vel_x += dx * force;
+                particles[x1]->vel_x += dx * force * -1;
+                particles[x]->vel_y += dy * force;
+                particles[x1]->vel_y += dy * force * -1;
+            }
+    // std::cout << " Dirty End \n" << std::flush;
+};
 
 void Uniform_Sphere_Sim_2d::dirtyCollisionDetector()
 {
@@ -188,56 +238,9 @@ void Uniform_Sphere_Sim_2d::dirtyCollisionDetector()
         }
     }
 
-    auto dirtyColliderProcess = [&](std::vector<particle_2d*>& particles)
-    {
-        // Check for colission
+    //    std::vector<std::future<std::result_of<std::lam>>> futures;
 
-        coord_type overlap;
-
-        auto collision_check = [&](const particle_2d* p1, const particle_2d* p2) -> bool
-        {
-            coord_type centre_distances
-                = (sqrt(pow(p1->xpos - p2->xpos, 2) + pow(p1->ypos - p2->ypos, 2)));
-
-            overlap = (p1->radius + p2->radius) - centre_distances;
-
-            if (overlap > 0)
-                return true;
-
-            return false;
-        };
-
-        for (int x = 0; x < particles.size() - 1; x++)
-            for (int x1 = 1; x1 < particles.size(); x1++)
-                if (collision_check(particles[x], particles[x1]))
-                {
-                    // std::cout << "SWAPPING\n" << std::flush;
-                    coord_type tmpx, tmpx1;
-                    tmpx = particles[x]->vel_y;
-                    tmpx1 = particles[x1]->vel_y;
-                    particles[x]->vel_y = particles[x1]->vel_y;
-                    particles[x1]->vel_y = particles[x]->vel_y;
-                    particles[x]->vel_y = tmpx1; // = vel_x
-                    particles[x1]->vel_y = tmpx; // = vel_x
-
-                    // Adding extra repulsive force when particles overlap :
-
-                    coord_type dx = particles[x]->xpos - particles[x1]->xpos;
-                    coord_type dy = particles[x]->ypos - particles[x1]->ypos;
-                    coord_type force = 2 * overlap / (particles[x]->radius + particles[x]->radius);
-
-                    // Using the distances from the center can calculate a rough value for
-                    // components of forces
-
-                    particles[x]->vel_x += dx * force;
-                    particles[x1]->vel_x += dx * force * -1;
-                    particles[x]->vel_y += dy * force;
-                    particles[x1]->vel_y += dy * force * -1;
-                }
-        // std::cout << " Dirty End \n" << std::flush;
-    };
-
-    std::vector<std::thread> threads;
+    std::vector<int> chunks;
     for (int y = 0; y < _chunks.second; y++)
         for (int x = 0; x < _chunks.first; x++)
         {
@@ -250,15 +253,34 @@ void Uniform_Sphere_Sim_2d::dirtyCollisionDetector()
 
             if (xyChunks[x + y * _chunks.second].size() >= 2)
             {
-                threads.push_back(
-                    std::thread(dirtyColliderProcess, xyChunks[x + y * _chunks.second]));
-                threads.back().detach();
+                chunks.push_back(x + y * _chunks.second);
             }
         }
-
-    for (auto& x : threads)
+    if (async)
     {
-        x.join();
+        std::vector<std::future<void>> futures;
+
+        for (int i = 0; i < threads; i++)
+        {
+            //            futures.push_back(
+            auto t = std::async(
+                std::launch::async,
+                [&]()
+                {
+                    for (int b = 0; b < chunks.size() / threads; b++)
+                    {
+                        dirtyColliderProcess(xyChunks[chunks[b + (chunks.size() / threads * i)]]);
+                    }
+                    return;
+                });
+        }
+    }
+    else
+    {
+        for (auto& x : chunks)
+        {
+            dirtyColliderProcess(xyChunks[x]);
+        }
     }
 
     return;
@@ -270,6 +292,8 @@ Uniform_Sphere_Sim_2d::Uniform_Sphere_Sim_2d()
     , _time_modifier(1)
     , _bounce_losses(0.5)
     , _chunks(5, 5)
+    , async(false)
+    , threads(2)
 {
     _rectangle_dims[0] = 10;
     _rectangle_dims[1] = 10;
@@ -279,4 +303,16 @@ Uniform_Sphere_Sim_2d::Uniform_Sphere_Sim_2d()
 
 Uniform_Sphere_Sim_2d::~Uniform_Sphere_Sim_2d() { }
 
+Thread_Worker::Thread_Worker() {}
+
+void Thread_Worker::setup(int workers)
+{
+    _worker_count = workers;
+}
+
+
+
+
+
 } // namespace crbn
+
