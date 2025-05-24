@@ -224,10 +224,10 @@ void Uniform_Sphere_Sim_2d::dirtyColliderProcess(std::vector<particle_2d*>& part
                 coord_type tmpx, tmpx1;
                 tmpx = particles[x]->vel_y;
                 tmpx1 = particles[x1]->vel_y;
-                particles[x]->vel_y = particles[x1]->vel_x;
-                particles[x1]->vel_y = particles[x]->vel_x;
-                particles[x]->vel_x = tmpx1;
-                particles[x1]->vel_x = tmpx;
+                particles[x]->vel_y = particles[x1]->vel_y;
+                particles[x1]->vel_y = particles[x]->vel_y;
+                particles[x]->vel_y = tmpx1;
+                particles[x1]->vel_y = tmpx;
             }
     std::cout << " Dirty End \n" << std::flush;
 }
