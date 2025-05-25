@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <functional>
 #include <queue>
+#include <sys/types.h>
 #include <thread>
 #include <vector>
 namespace crbn
@@ -89,18 +90,26 @@ public:
 
 static void dirtyColliderProcess(std::vector<particle_2d*>& particles);
 
-class Thread_Worker
+template <class T> class Thread_Worker
 {
 public:
     Thread_Worker();
-    void sendJobs(std::queue<std::function<void>>&);
-    void setup(int workers);
-    void sleepWorkers(bool sleeping = true);
+    /// send a queue of jobs to the workers
+    void sendJobs(std::queue<std::function<T>>&);
+    /// send a single job to the workers
+    void sendJobs(std::function<T>&);
+    /// Sets up and starts the workers
+    void setup(const int workers);
+    /// sleeping when true sleeps the sleepers sleepies
+    void sleepWorkers(const bool sleeping = true);
     bool areJobsDone();
 
     std::vector<std::thread> _workers;
-    std::vector<std::queue<std::function<void>>*> _data;
+
+    std::vector<std::queue<std::function<T>>*> _data;
+
     int _worker_count;
+    bool _sleep;
 };
 
 }

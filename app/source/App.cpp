@@ -7,6 +7,9 @@
 // - Getting Started      https://dearimgui.com/getting-started
 // - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
 // - Introduction, links and more at the top of imgui.cpp
+#include <KHR/khrplatform.h>
+#include <cstddef>
+#include <future>
 #include <iostream>
 
 #include "core/Core.h"
@@ -16,6 +19,7 @@
 #include "imgui_internal.h"
 #include <GL/gl.h>
 #include <stdio.h>
+#include <string>
 #define GL_SILENCE_DEPRECATION
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
@@ -154,17 +158,21 @@ int main(int, char**)
     sim._bounce_losses = 0.9;
 
     bool pause = false;
+    bool other_async = false;
+    // std::vector<crbn::pos> draw_history;
+    std::vector<float> draw_history;
+    bool do_draw_history;
 
     auto randomise = [&]()
     {
         for (int i = 0; i < particles; i++)
         {
             crbn::particle_2d tmp;
-            tmp.vel_y = rand() % 200;
+            tmp.vel_y = rand() % 400;
             tmp.vel_x = rand() % 200;
             tmp.radius = radius;
-            tmp.xpos = rand() % sim._rectangle_dims[2] +sim._rectangle_dims[0] ;
-            tmp.ypos = rand() % sim._rectangle_dims[3] +sim._rectangle_dims[1] ;
+            tmp.xpos = rand() % sim._rectangle_dims[2] + sim._rectangle_dims[0];
+            tmp.ypos = rand() % sim._rectangle_dims[3] + sim._rectangle_dims[1];
             sim.setParticle(tmp, i);
         }
     };
@@ -206,9 +214,16 @@ int main(int, char**)
 
         crbn::coord_type* coordbuf = sim.getCoordBuf();
         auto* imgui_drawlist = ImGui::GetBackgroundDrawList();
-        for (int i = 0; i < particles * 2; i += 2)
+
+        crbn::pos tempPos;
+        tempPos.x = coordbuf[0];
+        tempPos.y = coordbuf[1 + 0];
+        imgui_drawlist->AddCircleFilled(
+            { float(tempPos.x), io.DisplaySize.y - float(tempPos.y) },
+            radius,
+            ImGui::GetColorU32({ 255, 0, 0, 255 }));
+        for (int i = 2; i < particles * 2; i += 2)
         {
-            crbn::pos tempPos;
             tempPos.x = coordbuf[i];
             tempPos.y = coordbuf[1 + i];
             imgui_drawlist->AddCircleFilled(
@@ -237,6 +252,45 @@ int main(int, char**)
 
             static float tmpdbl;
 
+            if (ImGui::Checkbox("Draw Tracer", &do_draw_history))
+            {
+            }
+            if (do_draw_history)
+            {
+                draw_history.push_back(coordbuf[0]);
+                draw_history.push_back(coordbuf[1]);
+
+                size_t drawsize = draw_history.size() / 2;
+
+                ImGui::SliderInt("no", (int*)&drawsize, 0, 10000);
+                if (drawsize > 4)
+                {
+                    auto* tempvecdat = draw_history.data();
+
+                    ImVec2 u, v;
+                    v.x = 0;
+                    v.y = 0;
+
+                    for (size_t i = 0; i < drawsize * 2; i +=2)
+                    {
+                        u = v;
+                        v.x = tempvecdat[i];
+                        v.y = io.DisplaySize.y - tempvecdat[i + 1];
+                        // imgui_drawlist->AddLine(const ImVec2 &p1, const ImVec2 &p2, ImU32 col)
+                        imgui_drawlist->AddLine(u, v, ImGui::GetColorU32({ 255, 0, 0, 255 }));
+                        imgui_drawlist->PathLineTo(u);
+                    }
+                }
+            }
+            else
+            {
+                draw_history.clear();
+            }
+
+            // imgui_drawlist->AddPolyline((ImVec2*)draw_history.data(),
+            // draw_history.size(),ImGui::ColorConvertFloat4ToU32({255,0,0,255}),0, 1 );
+            // ImGui::SameLine(); ImGui::Text(" Draw History size = " );
+
             ImGui::SliderFloat("TimeModifier", &tmpdbl, 0, 20);
             sim.setTimeModifier(tmpdbl);
             if (tmpdbl == 0)
@@ -263,14 +317,24 @@ int main(int, char**)
             ImGui::SliderInt("Chunk X", &sim._chunks.first, 1, 50);
             ImGui::SliderInt("Chunk Y", &sim._chunks.second, 1, 50);
             ImGui::Checkbox("ASYNC", &sim.async);
+            ImGui::Checkbox("Other Async", &other_async);
 
             ImGui::SliderInt("Threads", (int*)&sim.threads, 1, 50);
             ImGui::End();
         }
 
-        if (!pause)
-            sim.runAsync(io.DeltaTime);
-        //std::cout << io.DeltaTime << std::endl;
+        if (other_async)
+        {
+            if (!pause)
+                auto future
+                    = std::async(&crbn::Uniform_Sphere_Sim_2d::runAsync, &sim, io.DeltaTime);
+        }
+        else
+        {
+            if (!pause)
+                sim.runAsync(io.DeltaTime);
+        };
+        // std::cout << io.DeltaTime << std::endl;
 
         // Rendering
         ImGui::Render();

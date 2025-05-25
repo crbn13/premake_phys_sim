@@ -1,7 +1,15 @@
 Multithread the chunks
 
-more chunks
+more chunks didnt do that much past 50 
 
-random starter locations for new particles
 
 idk why the y height bounds enforcing isnt working
+
+when particles collide going in the same direction, it doesnt really work 
+same y direction *
+or different y direction?1
+  THE DIRECTIONS : 
+    want the inverse sign of their EXISITNG DIRECTIONS
+    where they  exchange the other particles magniturde
+    they copy the other particles magniturde
+    then inverse that magnitude 
